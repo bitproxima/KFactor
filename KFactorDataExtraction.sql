@@ -1,6 +1,7 @@
 /*
 Extract data to calculate K-Factor at each SALI site that has the available data and format for Cubist.
 Version 1.0 - 11/10/2017 - Orginal script
+Version 1.1 - 26/10/2020 - Added Lab Method 6B5 (Dumas TC)
 
 This sql is part of a two step process
 Step 1. Run this SQL script "KFactorDataExtraction.sql" to create the data file "KFData.csv"
@@ -197,8 +198,8 @@ from
                       when v['Cat_CEC'] is not null and v['Clay'] is not null then
                         'Not clay'
                       end),
-    v['WB_OC'] = coalesce(v['6A1'],(v['6B2a']*0.935)),
-    m['WB_OC'] = coalesce(m['6A1'],m['6B2a']),
+    v['WB_OC'] = coalesce(v['6A1'], v['6B5'], (v['6B2a']*0.935)),
+    m['WB_OC'] = coalesce(m['6A1'], m['6B5'], m['6B2a']),
     v['Salinity'] = v['3A1'],                  
     m['Salinity'] = m['3A1']
      
