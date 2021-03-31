@@ -233,6 +233,7 @@ where
   --and ((ss.compound_pedality IS NULL) OR (ss.compound_pedality = 1))
   --and c.latitude between -26.476401 and -21.205394 and c.LONGITUDE between 146.557398 and 151.586142 --Fitzroy modelling area
   --and c.latitude between -28.434373 and -25.935197 and c.LONGITUDE between 151.496465 and 153.604435 --SEQ modelling area
+  and c.latitude between -28.384207 and -27.562490 and c.longitude between 152.422284 and 153.381002 --LASER bounding box modelling area
   and h.project_code NOT LIKE 'CQC' -- data from Project CQC excluded
   and not (h.project_code LIKE 'EIM' and h.Site_ID = 6051) -- data from EIM 6051 excluded
   and not (h.project_code LIKE 'QCS' and h.Site_ID IN (20, 21, 85, 86)) -- data from QCS 20, 21, 85 and 86 excluded
@@ -247,9 +248,9 @@ where
   --and d.disturb_type < 3 --limit query to sites with low disturbance (0,1,2)
   
   --Clay/CS/FS
-  --and (m.THE_VALUE <= 100) --USE FOR CLAY and CS and FS to elliminate percentage results > 100%
-  --and not (h.project_code LIKE 'BAN' and h.Site_ID = 95) -- USE FOR CLAY and CS and FS. Site BAN 95 excluded because lab data does not correlate with field description according to LF.
-  --and not (h.project_code LIKE 'BAMAR' and h.site_ID = 952 and sn.sample_no = 5) -- USE FOR CLAY. Site BAMAR 952 sample 5 excluded as gypsum present in soil solution has flocculated clay =1%
+  and (m.THE_VALUE <= 100) --USE FOR CLAY and CS and FS to elliminate percentage results > 100%
+  and not (h.project_code LIKE 'BAN' and h.Site_ID = 95) -- USE FOR CLAY and CS and FS. Site BAN 95 excluded because lab data does not correlate with field description according to LF.
+  and not (h.project_code LIKE 'BAMAR' and h.site_ID = 952 and sn.sample_no = 5) -- USE FOR CLAY. Site BAMAR 952 sample 5 excluded as gypsum present in soil solution has flocculated clay =1%
   
   --ESP
   --and (m.THE_VALUE <= 100) --USE FOR ESP to elliminate ESP percentage results > 100%
@@ -259,18 +260,18 @@ where
   --and not (h.project_code LIKE 'WDH' and h.Site_ID = 9098 and sn.sample_no = 13) -- USE FOR ESP. Site WDH 9098 Sample 13 excluded because cation data incorrect.
   
   --Salinity
-  and not (h.project_code LIKE 'MON' and h.Site_ID = 6094 and sn.sample_no = 4) -- USE FOR EC. Site MON 6094 Sample 4 excluded because 3A1 and 2Z2_Silt data obviously incorrect.
-  and not (h.project_code LIKE 'MON' and h.Site_ID = 6089 and sn.sample_no = 3) -- USE FOR EC. Site MON 6089 Sample 3 excluded because 3A1 and 2Z2_Silt data obviously incorrect.
-  and not (h.project_code LIKE 'AGOPS' and h.Site_ID = 162 and sn.sample_no = 16) -- USE FOR EC. Site AGOPS 162 Sample 16 excluded because 3A1 data obviously incorrect.
-  and not (h.project_code LIKE 'EIL' and h.Site_ID = 1000) -- USE FOR EC. Site EIL 1000 excluded because 3A1 data influenced by secondary salinity.
+  --and not (h.project_code LIKE 'MON' and h.Site_ID = 6094 and sn.sample_no = 4) -- USE FOR EC. Site MON 6094 Sample 4 excluded because 3A1 and 2Z2_Silt data obviously incorrect.
+  --and not (h.project_code LIKE 'MON' and h.Site_ID = 6089 and sn.sample_no = 3) -- USE FOR EC. Site MON 6089 Sample 3 excluded because 3A1 and 2Z2_Silt data obviously incorrect.
+  --and not (h.project_code LIKE 'AGOPS' and h.Site_ID = 162 and sn.sample_no = 16) -- USE FOR EC. Site AGOPS 162 Sample 16 excluded because 3A1 data obviously incorrect.
+  --and not (h.project_code LIKE 'EIL' and h.Site_ID = 1000) -- USE FOR EC. Site EIL 1000 excluded because 3A1 data influenced by secondary salinity.
   
   --Silt
-  --and (m.THE_VALUE <= 100) --USE FOR SILT to elliminate Silt percentage results > 100%
-  --and not (h.project_code LIKE 'BAN' and h.Site_ID = 95) -- USE FOR SILT. Site BAN 95 excluded because lab data does not correlate with field description according to LF.
-  --and not (h.project_code LIKE 'MCL' and h.Site_ID = 9052 and sn.sample_no = 31) -- USE FOR SILT. Site MCL 9052 sample 31 excluded because of funny silt value.
-  --and not (h.project_code LIKE 'BAMAR' and h.Site_ID = 952 and sn.sample_no = 5) -- USE FOR SILT. Site BAMAR 952 sample 5 excluded because of funny silt value.
-  --and h.project_code NOT LIKE 'MON' -- USE FOR SILT. All MON sites excluded because numeric value is inconsistent with formatted value.
-  --and not (h.project_code LIKE 'CCL' and h.site_id = 317 and sn.sample_no = 2) -- USE FOR SILT. Sample CCL 317 sample 2 excluded because of funny value.
+  and (m.THE_VALUE <= 100) --USE FOR SILT to elliminate Silt percentage results > 100%
+  and not (h.project_code LIKE 'BAN' and h.Site_ID = 95) -- USE FOR SILT. Site BAN 95 excluded because lab data does not correlate with field description according to LF.
+  and not (h.project_code LIKE 'MCL' and h.Site_ID = 9052 and sn.sample_no = 31) -- USE FOR SILT. Site MCL 9052 sample 31 excluded because of funny silt value.
+  and not (h.project_code LIKE 'BAMAR' and h.Site_ID = 952 and sn.sample_no = 5) -- USE FOR SILT. Site BAMAR 952 sample 5 excluded because of funny silt value.
+  and h.project_code NOT LIKE 'MON' -- USE FOR SILT. All MON sites excluded because numeric value is inconsistent with formatted value.
+  and not (h.project_code LIKE 'CCL' and h.site_id = 317 and sn.sample_no = 2) -- USE FOR SILT. Sample CCL 317 sample 2 excluded because of funny value.
  
  --Exch Ca
   --and not (h.project_code LIKE 'BAMAR' and h.site_ID = 952 and sn.sample_no = 5) -- USE FOR EXCH CA. Site BAMAR 952 sample number 5. As wrong method/ presence of gypsum affected results 
