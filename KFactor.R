@@ -1,12 +1,15 @@
 # Determine K-Factor at a SALI Site that has the necessary data ###
-# Version 1 - 10/10/2017 - Orginal script
+# Version 1.1 - 06/04/2021 - Updated
+# Version 1 - 10/10/2017 - Original script
 #
-#  Step 1 - Run sql "KFactorDataExtraction.sql" creating file "KFData.csv"
-#  Step 2 - Run this script "KFactor.R" creating file "K.csv"
+# Step 1 - Run sql "KFactorDataExtraction.sql" creating file "KFData.csv"
+# Step 2 - Run ProcessPSAData.R (Require predicted Clay, Silt, CS, FS for project area)
+# Step 3 - Place Clay_average.tif and other _average.tifs from Step 2 into Kfactor directory 
+# Step 3 - Run this script "KFactor.R" creating file "K.csv"
 #
 # Script starts here
 
-setwd("M:/Projects/Fitzroy_ErodSoil/Modelling/SoilErodibility/KFactor")
+setwd("M:/Projects/Logan_Albert_SEQW/Modelling/SiteData/Kfactor")
 soil.data<-read.table("KFdata.csv",header=TRUE,sep=",") #read all the data in
 library(plyr)
 library(raster)
@@ -14,18 +17,19 @@ library(sp)
 
 #pivot data
 library(reshape)
-a<-cast(soil.data, PROJECT_CODE + SITE_ID + OBS_NO + HORIZON_NO + SAMPLE_NO + UD + LD + LATITUDE + LONGITUDE + GRADE + SIZ + TYPE + COMPOUND_PEDALITY + PERMEABILITY ~ ATTRIBUTE, value = "VALUE", fun.aggregate=mean)
+a<-cast(soil.data, PROJECT_CODE + SITE_ID + OBS_NO + HORIZON_NO + SAMPLE_NO + UD + LD + X + Y + GRADE + SIZ + TYPE + COMPOUND_PEDALITY + PERMEABILITY ~ ATTRIBUTE, value = "VALUE", fun.aggregate=mean)
 
 #get interpolated particle size info at SALI sites (NOTE: Need to run ProcessPSAData.R script first)
+
 psa <- stack("Clay_average.tif", "CS_average.tif", "FS_average.tif", "Silt_average.tif") #get raster data
-d <- unique(subset(a, select = c('PROJECT_CODE', 'SITE_ID', 'OBS_NO', 'LONGITUDE', 'LATITUDE'))) #get points
-s <- SpatialPoints(data.frame(d$LONGITUDE,d$LATITUDE)) #convert points df to spatial points object
+d <- na.omit(unique(subset(a, select = c('PROJECT_CODE', 'SITE_ID', 'OBS_NO', 'X', 'Y')))) #get points
+s <- SpatialPoints(data.frame(d$X,d$Y)) #convert points df to spatial points object
 psas <- extract(psa, s, method='simple', buffer=NULL, small=FALSE, cellnumbers=FALSE, fun=NULL, na.rm=TRUE, nl = 4, df=TRUE, factors=FALSE, sp=TRUE)
 psadata <- unique(as.data.frame(psas)) #Convert results from a Spatialpoints object back to a df and remove duplicates
-psadata <- rename(psadata, c(d.LONGITUDE = "LONGITUDE", d.LATITUDE = "LATITUDE"))
+psadata <- rename(psadata, c(d.X = "X", d.Y = "Y"))
 
 #Merge interpolated with lab data
-a <- join(a, psadata, by = c("LONGITUDE", "LATITUDE"), type = "left", match = "first") #Merge interpolated psa data to orginal sample results
+a <- join(a, psadata, by = c("X", "Y"), type = "left", match = "first") #Merge interpolated psa data to original sample results
 
 #Particle size (M) (Brown book)
 a$M <- (a$Silt + (0.7*a$FS))*(100-a$Clay)
@@ -80,8 +84,7 @@ AllResults = subset(AllResults, !is.na(x.y))
 AllResults = subset(AllResults, select = c("PROJECT_CODE", "SITE_ID", "x.y"))
 AllResults <- rename(AllResults, c(x.y = "x"))
 result <- rbind(result, AllResults)
-location <- subset(soil.data, select = c("LATITUDE", "LONGITUDE", "ID", "PROJECT_CODE", "SITE_ID"))
-location <- rename(location, c(LONGITUDE = "X", LATITUDE = "Y"))
+location <- subset(soil.data, select = c("Y", "X", "ID", "PROJECT_CODE", "SITE_ID"))
 result <- join(result, location, by = c("PROJECT_CODE", "SITE_ID"), type = "left", match = "first")
 result <- subset(result, select = c("X", "Y", "ID", "x"))
 result <- rename(result, c(x = "0to15cm"))
@@ -100,8 +103,7 @@ AllResults = subset(AllResults, !is.na(x.y))
 AllResults = subset(AllResults, select = c("PROJECT_CODE", "SITE_ID", "x.y"))
 AllResults <- rename(AllResults, c(x.y = "x"))
 result <- rbind(result, AllResults)
-location <- subset(soil.data, select = c("LATITUDE", "LONGITUDE", "ID", "PROJECT_CODE", "SITE_ID"))
-location <- rename(location, c(LONGITUDE = "X", LATITUDE = "Y"))
+location <- subset(soil.data, select = c("Y", "X", "ID", "PROJECT_CODE", "SITE_ID"))
 result <- join(result, location, by = c("PROJECT_CODE", "SITE_ID"), type = "left", match = "first")
 result <- subset(result, select = c("X", "Y", "ID", "x"))
 result <- rename(result, c(x = "0to15cm"))
