@@ -1,5 +1,5 @@
 # Determine K-Factor at a SALI Site that has the necessary data ###
-# Version 1.1 - 06/04/2021 - Updated
+# Version 1.1 - 14/04/2021 - Updated
 # Version 1 - 10/10/2017 - Original script
 #
 # Step 1 - Run sql "KFactorDataExtraction.sql" creating file "KFData.csv"
@@ -48,18 +48,32 @@ OM$OM[OM$OM > 4] <- 4 #Change OM values > 4% to 4% based on Brown Book conclusio
 a <- join(a, OM, by = c("PROJECT_CODE", "SITE_ID"), type = "left", match = "first") #Join adjusted avearge OM values to orginal sample results
 
 #Soil Structure (SS)
-a$SS <- 2
-a$SS[a$SIZ == 1 & a$TYPE == "GR"] <- 2
-a$SS[a$SIZ == 2 & a$TYPE == "GR"] <- 3
-a$SS[a$SIZ == 3 & a$TYPE == "GR"] <- 3
-a$SS[a$GRADE == "V"]               <- 4
-a$SS[a$TYPE %in% c("PL", "SB", "AB", "CO")] <- 4     
+a$SS[a$SIZ == 1 & a$TYPE == "GR"] <- 1 # Changed from SS == 2 to 1 (12/04/2021)
+a$SS[a$SIZ == 2 & a$TYPE %in% c("GR", "PO")] <- 2 #Added PO and changed SS from 3 to 2 for a more even spread (12/04/2021)
+a$SS[a$SIZ == 3 & a$TYPE %in% c("GR", "PO")] <- 3 #Added PO (12/04/2021)
+a$SS[a$GRADE == "V"] <- 4
+a$SS[a$TYPE %in% c("PL", "SB", "CA", "AB", "BL", "PO", "LE", "CO", "PR")] <- 4 #Added BL, CA, PO, LE and PR (12/04/2021)     
 
 #Profile permeability class (PP) standard
-a$PP <- 2
+a$PP[a$PERMEABILITY == 4] <- 2 #Added (12/04/2021)
 a$PP[a$PERMEABILITY == 3] <- 4
 a$PP[a$PERMEABILITY == 2] <- 5
 a$PP[a$PERMEABILITY == 1] <- 6
+
+#Adjustment of a$PP according to the mentioned qualifiers in Cresswell 1993 for the LASER Mod area sites
+# Change PP class from 4 to 3 where the subsoil structure grade is moderate or strong (Cresswell 1993)
+a$PP <- ifelse(a$PROJECT_CODE == "BNH" & a$SITE_ID == 16, 3, a$PP) 
+a$PP <- ifelse(a$PROJECT_CODE == "BNH" & a$SITE_ID == 417, 3, a$PP)
+a$PP <- ifelse(a$PROJECT_CODE == "GCCC" & a$SITE_ID == 20, 3, a$PP)
+a$PP <- ifelse(a$PROJECT_CODE == "KAL" & a$SITE_ID == 6001, 3, a$PP)
+a$PP <- ifelse(a$PROJECT_CODE == "LASER" & a$SITE_ID == 58, 3, a$PP)
+a$PP <- ifelse(a$PROJECT_CODE == "SEQ" & a$SITE_ID == 13, 3, a$PP)
+a$PP <- ifelse(a$PROJECT_CODE == "SOC" & a$SITE_ID == 11, 3, a$PP)
+# Change PP class to 6 if soil shallow
+a$PP <- ifelse(a$PROJECT_CODE == "LASER" & a$SITE_ID == 103, 6, a$PP)
+a$PP <- ifelse(a$PROJECT_CODE == "LASER" & a$SITE_ID == 109, 6, a$PP)
+# Change PP class to 5 if subsoil a massive or weakly structured clay
+a$PP <- ifelse(a$PROJECT_CODE == "SEQ" & a$SITE_ID == 20, 5, a$PP)
 
 #K-Factor (RUSLE - Brown Book) Equation 28.2
 a$K <- (2.766*(a$M^1.14)*(10^-7)*(12-a$OM))+(4.28*(10^-3)*(a$SS-2))+(3.28*(10^-3)*(a$PP-3))
@@ -75,7 +89,7 @@ a$ADJInt <- a$RAWInt/(1.462+(0.048*(1.03259^(a$FS_average+a$CS_average)))-1)
 result <- subset(a, !is.na(K)) #list of sites without nulls in K Factor
 result <- aggregate(x = result$K, by = list(PROJECT_CODE = result$PROJECT_CODE, SITE_ID = result$SITE_ID), FUN = "mean")
 resultNA <- subset(a, is.na(K)) #list of sites with nulls in K Factor
-resultNA <- subset(resultNA, select = c("PROJECT_CODE", "SITE_ID", "KInt")) #Get K value calulated using interpolated PSA
+resultNA <- subset(resultNA, select = c("PROJECT_CODE", "SITE_ID", "KInt")) #Get K value calculated using interpolated PSA
 resultNA <- rename(resultNA, c(KInt = "K")) #Rename KInt column to K for sites without real PSA
 resultNA <- aggregate(x = resultNA$K, by = list(PROJECT_CODE = resultNA$PROJECT_CODE, SITE_ID = resultNA$SITE_ID), FUN = "mean")
 AllResults = merge (result, resultNA, by = c("PROJECT_CODE", "SITE_ID"), all.y = TRUE)
