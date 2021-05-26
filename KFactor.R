@@ -49,12 +49,12 @@ OM$OM[OM$OM > 4] <- 4 #Change OM values > 4% to 4% based on Brown Book conclusio
 a <- join(a, OM, by = c("PROJECT_CODE", "SITE_ID"), type = "left", match = "first") #Join adjusted avearge OM values to orginal sample results
 
 #Soil Structure (SS)
+a$SS[a$TYPE %in% c("PL", "SB", "CA", "AB", "BL", "PO", "LE", "CO", "PR")] <- 4 #Added BL, CA, PO, LE and PR (12/04/2021)     
 a$SS[a$GRADE == "W"] <- 4 #Treating W same as massive, added 7/5/21
 a$SS[a$SIZ == 1 & a$TYPE == "GR"] <- 1 # Changed from SS == 2 to 1 (12/04/2021)
 a$SS[a$SIZ == 2 & a$TYPE %in% c("GR", "PO")] <- 2 #Added PO and changed SS from 3 to 2 for a more even spread (12/04/2021)
 a$SS[a$SIZ == 3 & a$TYPE %in% c("GR", "PO")] <- 3 #Added PO (12/04/2021)
 a$SS[a$GRADE == "V"] <- 4
-a$SS[a$TYPE %in% c("PL", "SB", "CA", "AB", "BL", "PO", "LE", "CO", "PR")] <- 4 #Added BL, CA, PO, LE and PR (12/04/2021)     
 
 #Profile permeability class (PP) standard
 a$PP[a$PERMEABILITY == 4] <- 2 #Added (12/04/2021)
